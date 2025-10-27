@@ -169,4 +169,227 @@ const moveSnake = () =>{
 
 }
 
+//Funcion para agregar puntos tras comer
+const addFood = () => {
+	score++;
+	updateScore();
+	levelUpIfNeeded();
+	createRandomFood();
+}
 
+//Función para juego perdido
+const gameOver = () => {
+	gameOverSign.style.display = 'flex';
+	clearInterval(moveInterval)
+	clearInterval(timerInterval)
+	startButton.disabled = false;
+	pauseButton && (pauseButton.disabled = true);
+	updateBest();
+	finalScore && (finalScore.innerText = score);
+	finalBest && (finalBest.innerText = bestScore);
+	playGameOver();
+}
+
+//Establecer las direcciones
+const setDirection = newDirection => {
+	direction = newDirection;
+}
+
+//Casos para las direcciones de la serpiente
+const directionEvent = key => {
+	switch (key.code) {
+		case 'ArrowUp':
+			direction != 'ArrowDown' && setDirection(key.code)
+			break;
+		case 'ArrowDown':
+			direction != 'ArrowUp' && setDirection(key.code)
+			break;
+		case 'ArrowLeft':
+			direction != 'ArrowRight' && setDirection(key.code)
+			break;
+		case 'ArrowRight':
+			direction != 'ArrowLeft' && setDirection(key.code)
+			break;
+		case 'Space':
+			key.preventDefault();
+			togglePause();
+			break;
+		case 'KeyR':
+			restartGame();
+			break;
+		case 'Enter':
+			if (startButton && !startButton.disabled) startGame();
+			break;
+	}
+}
+
+//Crear comida de forma aleatoria(manzanas)
+const createRandomFood = () => {
+	const randomEmptySquare = emptySquares[Math.floor(Math.random() * emptySquares.length)];
+	drawSquare(randomEmptySquare, 'foodSquare');
+	// mantener emptySquares sin el food
+	const idx = emptySquares.indexOf(randomEmptySquare);
+	if (idx !== -1) emptySquares.splice(idx, 1);
+}
+
+//Actualizar el marcador del puntaje
+const updateScore = () => {
+	scoreBoard.innerText = score;
+}
+
+const updateLength = () => {
+	if (lengthBoard) lengthBoard.innerText = snake.length;
+}
+
+const updateBest = () => {
+	if (score > bestScore) {
+		bestScore = score;
+		localStorage.setItem('snake_best_score', String(bestScore));
+	}
+	if (bestBoard) bestBoard.innerText = bestScore;
+}
+
+const updateLevelAndSpeed = () => {
+	if (levelBoard) levelBoard.innerText = level;
+	if (speedBoard) speedBoard.innerText = `${gameSpeed}ms`;
+}
+
+const levelUpIfNeeded = () => {
+	// Sube de nivel cada 5 puntos y aumenta la velocidad hasta un mínimo
+	const newLevel = Math.floor((score - 1) / 5) + 1;
+	if (newLevel !== level) {
+		level = newLevel;
+		const newSpeed = Math.max(40, Number(speedSelect?.value || 100) - (level - 1) * 10);
+		if (newSpeed !== gameSpeed) {
+			gameSpeed = newSpeed;
+			restartInterval();
+			updateLevelAndSpeed();
+		}
+	}
+}
+
+const restartInterval = () => {
+	clearInterval(moveInterval);
+	moveInterval = setInterval(() => moveSnake(), gameSpeed);
+}
+
+const formatTime = (ms) => {
+	const totalSeconds = Math.floor(ms / 1000);
+	const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+	const seconds = String(totalSeconds % 60).padStart(2, '0');
+	return `${minutes}:${seconds}`;
+}
+
+const startTimer = () => {
+	startTimestamp = Date.now() - elapsedMs;
+	clearInterval(timerInterval);
+	timerInterval = setInterval(() => {
+		elapsedMs = Date.now() - startTimestamp;
+		if (timeBoard) timeBoard.innerText = formatTime(elapsedMs);
+	}, 250);
+}
+
+const stopTimer = () => {
+	clearInterval(timerInterval);
+}
+
+const togglePause = () => {
+	if (gameOverSign.style.display === 'flex') return;
+	paused = !paused;
+	if (paused) {
+		stopTimer();
+		pauseButton && (pauseButton.textContent = 'Resume ▶️');
+		playPause();
+	} else {
+		startTimer();
+		pauseButton && (pauseButton.textContent = 'Pause ⏸️');
+		playResume();
+	}
+}
+
+//Función para pintar el tablero
+const createBoard = () => {
+	boardSquares.forEach( (row, rowIndex) => {
+		row.forEach( (column, columnindex) => {
+			const squareValue = rowIndex * boardSize + columnindex;
+			const squareElement = document.createElement('div');
+			squareElement.setAttribute('class', 'square emptySquare');
+			squareElement.setAttribute('id', String(squareValue).padStart(2, '0'));
+			board.appendChild(squareElement);
+			emptySquares.push(squareValue);
+		})
+	})
+}
+
+//Condiciones del juego
+const setGame = () => {
+	// lee selects
+	boardSize = Number(sizeSelect?.value || 10);
+	gameSpeed = Number(speedSelect?.value || 100);
+	gameMode = modeSelect?.value || 'walls';
+	setSkin(skinSelect?.value || 'classic');
+	masterVolume = (Number(volumeSlider?.value || 40) / 100);
+	// aplica columnas dinámicas
+	board.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
+
+	// serpiente inicial horizontal en la fila 0
+	snake = [0, 1, 2, 3];
+	score = snake.length;
+	direction = 'ArrowRight';
+	boardSquares = Array.from(Array(boardSize), () => new Array(boardSize).fill(squareTypes.emptySquare));
+	board.innerHTML = '';
+	emptySquares = [];
+	createBoard();
+	level = 1;
+	elapsedMs = 0;
+	updateBest();
+	updateScore();
+	updateLength();
+	updateLevelAndSpeed();
+	if (timeBoard) timeBoard.innerText = '00:00';
+}
+
+//Iniciar el juego
+const startGame = () => {
+	setGame();
+	gameOverSign.style.display = 'none';
+	startButton.disabled = true;
+	pauseButton && (pauseButton.disabled = false);
+	snake.forEach(sq => drawSquare(sq, 'snakeSquare'));
+	createRandomFood();
+	document.addEventListener('keydown', directionEvent);
+	restartInterval();
+	paused = false;
+	pauseButton && (pauseButton.textContent = 'Pause ⏸️');
+	startTimer();
+}
+
+const restartGame = () => {
+	if (startButton.disabled) {
+		paused = true;
+		stopTimer();
+	}
+	startGame();
+}
+
+//boton para iniciar el juego
+startButton.addEventListener('click', startGame);
+
+// nuevos eventos
+if (pauseButton) pauseButton.addEventListener('click', togglePause);
+if (restartButton) restartButton.addEventListener('click', () => restartGame());
+
+if (sizeSelect) sizeSelect.addEventListener('change', () => {
+	if (!startButton.disabled) {
+		const size = Number(sizeSelect.value);
+		board.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+	}
+});
+
+if (skinSelect) skinSelect.addEventListener('change', () => {
+	setSkin(skinSelect.value);
+});
+
+if (volumeSlider) volumeSlider.addEventListener('input', () => {
+	masterVolume = Number(volumeSlider.value) / 100;
+});
