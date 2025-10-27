@@ -1,0 +1,106 @@
+:root {
+    --bg: #0b1020;
+    --panel: #121a33;
+    --grid-empty: #2a2f5a;
+    --grid-snake: #e3e773;
+    --grid-food: #55e7e7;
+    --accent: #f35a69;
+    --text: #e8ecff;
+    --muted: #9aa3c7;
+    --shadow: 0 10px 30px rgba(0,0,0,0.35);
+    /* Skins de la serpiente*/
+    --snake-color-classic: #e3e773;
+	--snake-color-neon: #9dff00;
+	--snake-color-retro: #ffd166;
+	--snake-color-matrix: #00ff95;
+
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    background: radial-gradient(1000px 600px at 50% -200px, #1a2250 0%, var(--bg) 40%);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.header {
+    width: 100%;
+    max-width: 680px;
+    padding: 20px 16px 0;
+    box-sizing: border-box;
+}
+
+h1 {
+    margin: 10px 0 6px;
+    letter-spacing: 1px;
+}
+
+hr {
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    background-color: #9dff00;
+}
+
+.hud {
+    width: 100%;
+    max-width: 680px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 16px 0;
+    box-sizing: border-box;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 8px 16px;
+    background: #0080ff;
+    border: 1px solid #f35a69;
+    border-radius: 10px;
+    padding: 10px 12px;
+    box-shadow: var(--shadow);
+}
+
+.stat span:first-child {
+    color: var(--muted);
+    margin-right: 4px;
+}
+
+.controls{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.control-group{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #0080ff;
+    border: 1px solid rgba(0,0,0,0.35);
+    border-radius: 10px;
+    padding: 6px 8px;
+    box-shadow: var(--shadow);
+}
+
+.control-group label {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.control-group select {
+    background: var(--panel);
+    border: 1px solid rgba(0,0,0,0.35);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
